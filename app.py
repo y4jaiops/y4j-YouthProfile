@@ -7,6 +7,9 @@ from googleapiclient.http import MediaIoBaseUpload
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
 
+# Correct (Generic Keyword):
+# SCOPES = ['https://www.googleapis.com/auth/drive.file']
+
 # --- CONSTANTS ---
 FOLDER_ID = "1_XXSyakCqZdKq72LFTd2g7iqH0enpt9L"
 
