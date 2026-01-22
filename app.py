@@ -187,9 +187,4 @@ if st.sidebar.button("Logout"):
 st.title("🏗️ Y4J Candidate Info Builder")
 st.write(f"Welcome, **{user_name}**!")
 
-with st.form("entry_form", clear_on_submit=True):
-    st.subheader("New Contribution")
-    info_title = st.text_input("Candidate/Info Title")
-    category = st.selectbox("Category", ["Finance", "Legal", "Marketing", "Research", "Other"])
-    entry_date = st.date_input("Document Date", date.today())
-    details = st.text_area("Details/Description")
+with st.form
