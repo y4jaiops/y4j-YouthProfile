@@ -61,7 +61,6 @@ def get_production_drive_service():
     """
     auth = st.secrets["google_auth"]
     
-    # --- ERROR WAS HERE: Ensure the closing parenthesis ')' exists ---
     creds = Credentials(
         token=None,
         refresh_token=auth["refresh_token"],
@@ -182,3 +181,66 @@ except Exception as e:
 if st.sidebar.button("Logout"):
     for key in list(st.session_state.keys()):
         del st.session_state[key]
+    st.rerun()
+
+# --- MAIN FORM UI ---
+st.title("🏗️ Y4J Candidate Info Builder")
+st.write(f"Welcome, **{user_name}**!")
+
+with st.form("entry_form", clear_on_submit=True):
+    st.subheader("New Contribution")
+    
+    # 1. FILE ENTRY DATA
+    info_title = st.text_input("Candidate/Info Title")
+    category = st.selectbox("Category", ["Finance", "Legal", "Marketing", "Research", "Other"])
+    entry_date = st.date_input("Document Date", date.today())
+    details = st.text_area("Details/Description")
+    
+    st.divider()
+    
+    # 2. FILE BROWSE FEATURE (Restored)
+    uploaded_file = st.file_uploader("Upload PDF, Image, or Doc", type=["pdf", "png", "jpg", "jpeg", "doc", "docx", "txt"])
+    
+    # Button is inside the form
+    submit = st.form_submit_button("🚀 Upload to Production Drive", use_container_width=True)
+
+# --- 6. SUBMISSION LOGIC ---
+if submit:
+    if not info_title:
+        st.error("Error: Please provide a title.")
+    else:
+        with st.spinner("Pushing to 2 TB Storage..."):
+            success = True
+            
+            # A. Upload the Text Details (With User Signature)
+            text_filename = f"{entry_date}_{category}_{info_title}_notes.txt"
+            
+            full_content = (
+                f"TITLE: {info_title}\n"
+                f"CATEGORY: {category}\n"
+                f"DATE: {entry_date}\n"
+                f"AUTHOR: {user_email} (ID: {user_id})\n"
+                f"----------------------------------------\n"
+                f"{details}"
+            )
+            
+            res_text = upload_to_drive(text_filename, full_content.encode('utf-8'), 'text/plain')
+            if not res_text: success = False
+
+            # B. UPLOAD LOGIC (Restored)
+            # This checks if you attached a file and uploads it
+            if uploaded_file:
+                # Prefix filename with user email for better sorting
+                file_name = f"{user_email}_{uploaded_file.name}"
+                res_file = upload_to_drive(file_name, uploaded_file.getvalue(), uploaded_file.type)
+                
+                if not res_file: 
+                    success = False
+                    st.error("File upload failed.")
+                else:
+                    # Optional: Show success for individual file
+                    st.toast(f"File uploaded: {file_name}")
+
+            if success:
+                st.success(f"Successfully uploaded '{info_title}' records!")
+                st.balloons()
