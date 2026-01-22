@@ -187,4 +187,57 @@ if st.sidebar.button("Logout"):
 st.title("🏗️ Y4J Candidate Info Builder")
 st.write(f"Welcome, **{user_name}**!")
 
-with st.form
+with st.form("entry_form", clear_on_submit=True):
+    st.subheader("New Contribution")
+    info_title = st.text_input("Candidate/Info Title")
+    category = st.selectbox("Category", ["Finance", "Legal", "Marketing", "Research", "Other"])
+    entry_date = st.date_input("Document Date", date.today())
+    details = st.text_area("Details/Description")
+    
+    st.divider()
+    uploaded_file = st.file_uploader("Upload PDF or Image", type=["pdf", "png", "jpg", "jpeg"])
+    camera_photo = st.camera_input("OR Take a photo now")
+
+    # --- INDENTATION IS CRITICAL HERE ---
+    # This button is indented 4 spaces, putting it INSIDE the form
+    submit = st.form_submit_button("🚀 Upload to Production Drive", use_container_width=True)
+
+# --- 6. SUBMISSION LOGIC ---
+if submit:
+    if not info_title:
+        st.error("Error: Please provide a title.")
+    else:
+        with st.spinner("Pushing to 2 TB Storage..."):
+            success = True
+            
+            # A. Upload the Text Details (With User Signature)
+            text_filename = f"{entry_date}_{category}_{info_title}_notes.txt"
+            
+            full_content = (
+                f"TITLE: {info_title}\n"
+                f"CATEGORY: {category}\n"
+                f"DATE: {entry_date}\n"
+                f"AUTHOR: {user_email} (ID: {user_id})\n"
+                f"----------------------------------------\n"
+                f"{details}"
+            )
+            
+            res_text = upload_to_drive(text_filename, full_content.encode('utf-8'), 'text/plain')
+            if not res_text: success = False
+
+            # B. Upload File
+            if uploaded_file:
+                # Prefix filename with user email for better sorting
+                file_name = f"{user_email}_{uploaded_file.name}"
+                res_file = upload_to_drive(file_name, uploaded_file.getvalue(), uploaded_file.type)
+                if not res_file: success = False
+
+            # C. Upload Camera Photo
+            if camera_photo:
+                photo_name = f"{entry_date}_{info_title}_photo.jpg"
+                res_cam = upload_to_drive(photo_name, camera_photo.getvalue(), 'image/jpeg')
+                if not res_cam: success = False
+
+            if success:
+                st.success(f"Successfully uploaded '{info_title}' records!")
+                st.balloons()
